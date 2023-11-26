@@ -21,7 +21,7 @@ class SistemaDeArchivos:
         self.historico_comandos = []
 
     def ejecutar_comando(self, comando):
-        self.historico_comandos.append((comando, datetime.datetime.now()))
+        self.historico_comandos.append((comando))
         partes = comando.split()
         cmd = partes[0]
 
@@ -31,7 +31,7 @@ class SistemaDeArchivos:
             elif cmd == "pwd":
                 print(self.pwd())
             elif cmd == "ls":
-                self.ls()
+                self.ls(partes[1] if len(partes) > 1 else None)
             elif cmd == "cd" and len(partes) > 1:
                 self.cd(partes[1])
             elif cmd.startswith("cat"):
@@ -66,15 +66,33 @@ class SistemaDeArchivos:
             ruta = "/" + directorio.nombre + ruta
             directorio = directorio.padre
         return ruta
+  
+    def ls(self, ruta=None):
+        directorio = self.directorio_actual
+        if ruta:
+            directorio = self.buscar_directorio(ruta)
+            if not directorio:
+                print(f"Directorio '{ruta}' no encontrado.")
+                return
 
-    def ls(self):
-        if not self.directorio_actual.subdirectorios and not self.directorio_actual.archivos:
+        if not directorio.subdirectorios and not directorio.archivos:
             print("No hay archivos o directorios en la ubicación actual.")
         else:
-            for nombre in self.directorio_actual.subdirectorios:
+            for nombre in directorio.subdirectorios:
                 print("Dir -", nombre)
-            for nombre in self.directorio_actual.archivos:
+            for nombre in directorio.archivos:
                 print("File -", nombre)
+
+    def buscar_directorio(self, ruta):
+        partes = ruta.split('/')
+        directorio = self.raiz if partes[0] == "root" else self.directorio_actual
+        for parte in partes[1:]:
+            if parte in directorio.subdirectorios:
+                directorio = directorio.subdirectorios[parte]
+            else:
+                print(f"Directorio '{parte}' no encontrado.")
+                return self.directorio_actual
+        return directorio
 
     def cd(self, nombre):
         if nombre == "..":
