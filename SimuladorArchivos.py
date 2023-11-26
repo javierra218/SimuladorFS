@@ -1,5 +1,5 @@
 import os
-import datetime
+
 
 class Archivo:
     def __init__(self, nombre, contenido=""):
@@ -7,12 +7,14 @@ class Archivo:
         self.contenido = contenido
         self.permisos = "755"
 
+
 class Directorio:
     def __init__(self, nombre, padre=None):
         self.nombre = nombre
         self.padre = padre
         self.archivos = {}
         self.subdirectorios = {}
+
 
 class SistemaDeArchivos:
     def __init__(self):
@@ -57,7 +59,9 @@ class SistemaDeArchivos:
         if nombre in self.directorio_actual.subdirectorios:
             print(f"El directorio '{nombre}' ya existe.")
         else:
-            self.directorio_actual.subdirectorios[nombre] = Directorio(nombre, self.directorio_actual)
+            self.directorio_actual.subdirectorios[nombre] = Directorio(
+                nombre, self.directorio_actual
+            )
 
     def pwd(self):
         directorio = self.directorio_actual
@@ -66,7 +70,7 @@ class SistemaDeArchivos:
             ruta = "/" + directorio.nombre + ruta
             directorio = directorio.padre
         return ruta
-  
+
     def ls(self, ruta=None):
         directorio = self.directorio_actual
         if ruta:
@@ -84,7 +88,7 @@ class SistemaDeArchivos:
                 print("File -", nombre)
 
     def buscar_directorio(self, ruta):
-        partes = ruta.split('/')
+        partes = ruta.split("/")
         directorio = self.raiz if partes[0] == "root" else self.directorio_actual
         for parte in partes[1:]:
             if parte in directorio.subdirectorios:
@@ -113,12 +117,13 @@ class SistemaDeArchivos:
         if ">" in partes:
             indice = partes.index(">")
             nombre = partes[indice + 1]
-            contenido = " ".join(partes[indice + 2:]) if len(partes) > indice + 2 else ""
+            contenido = (
+                " ".join(partes[indice + 2 :]) if len(partes) > indice + 2 else ""
+            )
             self.crear_archivo(nombre, contenido)
         else:
             nombre = partes[1]
             self.mostrar_contenido_archivo(nombre)
-
 
     def crear_archivo(self, nombre, contenido):
         self.directorio_actual.archivos[nombre] = Archivo(nombre, contenido)
@@ -126,7 +131,6 @@ class SistemaDeArchivos:
             print(f"Archivo '{nombre}' creado.")
         else:
             print(f"Error al crear el archivo '{nombre}'.")
-
 
     def mostrar_contenido_archivo(self, nombre):
         if nombre in self.directorio_actual.archivos:
@@ -136,7 +140,9 @@ class SistemaDeArchivos:
 
     def mv(self, antiguo, nuevo):
         if antiguo in self.directorio_actual.archivos:
-            self.directorio_actual.archivos[nuevo] = self.directorio_actual.archivos.pop(antiguo)
+            self.directorio_actual.archivos[
+                nuevo
+            ] = self.directorio_actual.archivos.pop(antiguo)
         elif antiguo in self.directorio_actual.subdirectorios:
             dir = self.directorio_actual.subdirectorios.pop(antiguo)
             dir.nombre = nuevo
@@ -152,9 +158,31 @@ class SistemaDeArchivos:
         else:
             print(f"No se encontró '{nombre}'")
 
-    def chmod(self, nombre, permisos):
+    def permisos_a_cadena(self, permisos):
+        representaciones = {
+            "7": "rwx",
+            "6": "rw-",
+            "5": "r-x",
+            "4": "r--",
+            "3": "-wx",
+            "2": "-w-",
+            "1": "--x",
+            "0": "---",
+        }
+        return "".join(representaciones.get(p, "---") for p in permisos)
+
+    def chmod(self, permisos, nombre):
+        if not permisos.isdigit() or not 000 <= int(permisos, 8) <= 777:
+            print(
+                "Error: los permisos deben ser un número octal de tres dígitos (000-777)."
+            )
+            return
+
+        permisos_cadena = self.permisos_a_cadena(permisos)
+
         if nombre in self.directorio_actual.archivos:
             self.directorio_actual.archivos[nombre].permisos = permisos
+            print(f"Permisos de '{nombre}' cambiados a {permisos} ({permisos_cadena}).")
         else:
             print(f"Archivo '{nombre}' no encontrado.")
 
@@ -164,11 +192,12 @@ class SistemaDeArchivos:
         print("Sistema de archivos formateado.")
 
     def cls(self):
-        os.system('cls' if os.name == 'nt' else 'clear')
+        os.system("cls" if os.name == "nt" else "clear")
 
     def history(self):
         for comando in self.historico_comandos:
             print(comando)
+
 
 def main():
     fs = SistemaDeArchivos()
@@ -177,8 +206,9 @@ def main():
         comando = input("$ ")
         fs.ejecutar_comando(comando)
 
+
 if __name__ == "__main__":
     main()
 
 
-#TODO: hacer 2 comandos para cat (cat >) y (cat )
+# TODO: hacer 2 comandos para cat (cat >) y (cat )
