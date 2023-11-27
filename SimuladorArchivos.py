@@ -27,33 +27,28 @@ class SistemaDeArchivos:
         partes = comando.split()
         cmd = partes[0]
 
+        comandos = {
+            "mkdir": lambda: self.mkdir(partes[1]) if len(partes) > 1 else print("Se requiere un argumento para mkdir."),
+            "pwd": lambda: print(self.pwd()),
+            "ls": lambda: self.ls(partes[1] if len(partes) > 1 else None),
+            "cd": lambda: self.cd(partes[1]) if len(partes) > 1 else print("Se requiere un argumento para cd."),
+            "cat": lambda: self.cat(comando[4:]),
+            "mv": lambda: self.mv(partes[1], partes[2]) if len(partes) > 2 else print("mv requiere dos argumentos."),
+            "rm": lambda: self.rm(partes[1]) if len(partes) > 1 else print("Se requiere un argumento para rm."),
+            "chmod": lambda: self.chmod(partes[1], partes[2]) if len(partes) > 2 else print("chmod requiere dos argumentos."),
+            "format": self.format,
+            "cls": self.cls,
+            "history": self.history
+        }
+
         try:
-            if cmd == "mkdir" and len(partes) > 1:
-                self.mkdir(partes[1])
-            elif cmd == "pwd":
-                print(self.pwd())
-            elif cmd == "ls":
-                self.ls(partes[1] if len(partes) > 1 else None)
-            elif cmd == "cd" and len(partes) > 1:
-                self.cd(partes[1])
-            elif cmd.startswith("cat"):
-                self.cat(comando[4:])
-            elif cmd == "mv" and len(partes) > 2:
-                self.mv(partes[1], partes[2])
-            elif cmd == "rm" and len(partes) > 1:
-                self.rm(partes[1])
-            elif cmd == "chmod" and len(partes) > 2:
-                self.chmod(partes[1], partes[2])
-            elif cmd == "format":
-                self.format()
-            elif cmd == "cls":
-                self.cls()
-            elif cmd == "history":
-                self.history()
+            if cmd in comandos:
+                comandos[cmd]()
             else:
                 print("Comando no reconocido o faltan argumentos.")
         except Exception as e:
-            print("Error:", e)
+            print(f"Error en comando {cmd}: {e}")
+
 
     def mkdir(self, nombre):
         if nombre in self.directorio_actual.subdirectorios:
@@ -201,8 +196,10 @@ class SistemaDeArchivos:
 
 def main():
     fs = SistemaDeArchivos()
-    print("Bienvenido al simulador de sistema de archivos.")
+    os.system("cls" if os.name == "nt" else "clear")
+    print("Simulador de Archivos.")
     while True:
+        print(fs.pwd(), end=" ")
         comando = input("$ ")
         fs.ejecutar_comando(comando)
 
